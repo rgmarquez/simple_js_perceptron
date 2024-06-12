@@ -23,7 +23,7 @@ function sigmoid(x) {
   return 1 / (1 + Math.exp(-x));
 }
 
-// Derivative of the sigmoid function
+// Derivative of the activation (sigmoid) function
 // 0.25     _
 //        /   \
 // 0.0   /     \
@@ -32,10 +32,8 @@ function sigmoidDerivative(x) {
   return x * (1 - x);
 }
 
-// Global NN model
-let hiddenLayerInput = [];
-
-// Initialize weights and biases
+// Initialize the Global NN model:
+// Weights, Biases, Activations
 let weightsInputHidden = [
   [Math.random(), Math.random()], // Weights from input to hidden neuron 1
   [Math.random(), Math.random()], // Weights from input to hidden neuron 2
@@ -47,14 +45,41 @@ let weightsHiddenOutput = [
 let biasesHidden = [Math.random(), Math.random()];
 let biasesOutput = [Math.random(), Math.random()];
 
+let hiddenLayerActivation = [];
+let outputLayerActivation = [];
+
+function predict(inputs) {
+  for (let i = 0; i < 2; i++) {
+    hiddenLayerActivation[i] = 0;
+    for (let j = 0; j < 2; j++) {
+      hiddenLayerActivation[i] += inputs[j] * weightsInputHidden[j][i];
+    }
+    hiddenLayerActivation[i] += biasesHidden[i];
+    hiddenLayerActivation[i] = sigmoid(hiddenLayerActivation[i]);
+  }
+
+  for (let i = 0; i < 2; i++) {
+    outputLayerActivation[i] = 0;
+    for (let j = 0; j < 2; j++) {
+      outputLayerActivation[i] +=
+        hiddenLayerActivation[j] * weightsHiddenOutput[j][i];
+    }
+    outputLayerActivation[i] += biasesOutput[i];
+    outputLayerActivation[i] = sigmoid(outputLayerActivation[i]);
+  }
+
+  return outputLayerActivation;
+}
+
 function train(inputs, expectedOutputs, learningRate) {
   // Forward pass
-  let outputLayerInput = predict(inputs);
+  predict(inputs);
 
-  // Backward pass (calculate errors and update weights)
+  // Back propegation pass (calculate errors and update weights & biases)
+  // Calculate the error values for output and hidden layers
   let outputErrors = [];
   for (let i = 0; i < 2; i++) {
-    outputErrors[i] = expectedOutputs[i] - outputLayerInput[i];
+    outputErrors[i] = expectedOutputs[i] - outputLayerActivation[i];
   }
 
   let hiddenErrors = [];
@@ -63,47 +88,35 @@ function train(inputs, expectedOutputs, learningRate) {
     for (let j = 0; j < 2; j++) {
       hiddenErrors[i] += outputErrors[j] * weightsHiddenOutput[i][j];
     }
-    hiddenErrors[i] *= sigmoidDerivative(hiddenLayerInput[i]);
+    // Gradient Descent is an optimization technique used to minimize the loss function
+    // by iteratively adjusting the weights and biases in the direction of the steepest
+    // descent (negative gradient).
+    // We use the derivative (slope) of the activation function with respect to each activation
+    // to find the direction of the steepest descent (negative gradient) in order to adjust
+    // the weights to minimize the error
+    // In mathematical terms, this is part of the chain rule used in backpropagation.
+    // By multiplying the error by the derivative of the activation function, we are effectively
+    // determining how much the weights leading into this hidden neuron should be adjusted to
+    // reduce the overall error.
+    hiddenErrors[i] *= sigmoidDerivative(hiddenLayerActivation[i]);
   }
 
-  // Update weights and biases
+  // Update weights and biases for hidden->output connections
   for (let i = 0; i < 2; i++) {
     for (let j = 0; j < 2; j++) {
       weightsHiddenOutput[j][i] +=
-        learningRate * outputErrors[i] * hiddenLayerInput[j];
+        learningRate * outputErrors[i] * hiddenLayerActivation[j];
     }
     biasesOutput[i] += learningRate * outputErrors[i];
   }
 
+  // Update weights and biases for input->hidden connections
   for (let i = 0; i < 2; i++) {
     for (let j = 0; j < 2; j++) {
       weightsInputHidden[j][i] += learningRate * hiddenErrors[i] * inputs[j];
     }
     biasesHidden[i] += learningRate * hiddenErrors[i];
   }
-}
-
-function predict(inputs) {
-  for (let i = 0; i < 2; i++) {
-    hiddenLayerInput[i] = 0;
-    for (let j = 0; j < 2; j++) {
-      hiddenLayerInput[i] += inputs[j] * weightsInputHidden[j][i];
-    }
-    hiddenLayerInput[i] += biasesHidden[i];
-    hiddenLayerInput[i] = sigmoid(hiddenLayerInput[i]);
-  }
-
-  let outputLayerInput = [];
-  for (let i = 0; i < 2; i++) {
-    outputLayerInput[i] = 0;
-    for (let j = 0; j < 2; j++) {
-      outputLayerInput[i] += hiddenLayerInput[j] * weightsHiddenOutput[j][i];
-    }
-    outputLayerInput[i] += biasesOutput[i];
-    outputLayerInput[i] = sigmoid(outputLayerInput[i]);
-  }
-
-  return outputLayerInput;
 }
 
 // Get inputs from command line
