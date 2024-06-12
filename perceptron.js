@@ -71,33 +71,35 @@ function predict(inputs) {
   return outputLayerActivation;
 }
 
+// Gradient Descent is an optimization technique used to minimize the loss function
+// by iteratively adjusting the weights and biases in the direction of the steepest
+// descent (negative gradient).
+// We use the derivative (slope) of the activation function with respect to each activation
+// to find the direction of the steepest descent (negative gradient) in order to adjust
+// the weights to minimize the error
+// In mathematical terms, this is part of the chain rule used in backpropagation.
+// By multiplying the error by the derivative of the activation function, we are effectively
+// determining how much the weights leading into this hidden neuron should be adjusted to
+// reduce the overall error.
+
 function train(inputs, expectedOutputs, learningRate) {
   // Forward pass
   predict(inputs);
 
-  // Back propegation pass (calculate errors and update weights & biases)
-  // Calculate the error values for output and hidden layers
+  // Calculate output layer errors with activation function derivative
   let outputErrors = [];
   for (let i = 0; i < 2; i++) {
-    outputErrors[i] = expectedOutputs[i] - outputLayerActivation[i];
+    let error = expectedOutputs[i] - outputLayerActivation[i];
+    outputErrors[i] = error * sigmoidDerivative(outputLayerActivation[i]);
   }
 
+  // Calculate hidden layer errors
   let hiddenErrors = [];
   for (let i = 0; i < 2; i++) {
     hiddenErrors[i] = 0;
     for (let j = 0; j < 2; j++) {
       hiddenErrors[i] += outputErrors[j] * weightsHiddenOutput[i][j];
     }
-    // Gradient Descent is an optimization technique used to minimize the loss function
-    // by iteratively adjusting the weights and biases in the direction of the steepest
-    // descent (negative gradient).
-    // We use the derivative (slope) of the activation function with respect to each activation
-    // to find the direction of the steepest descent (negative gradient) in order to adjust
-    // the weights to minimize the error
-    // In mathematical terms, this is part of the chain rule used in backpropagation.
-    // By multiplying the error by the derivative of the activation function, we are effectively
-    // determining how much the weights leading into this hidden neuron should be adjusted to
-    // reduce the overall error.
     hiddenErrors[i] *= sigmoidDerivative(hiddenLayerActivation[i]);
   }
 
@@ -133,7 +135,8 @@ const trainingData = [
 
 // Train the model
 const learningRate = 0.1;
-const epochs = 10000;
+//const epochs = 10000;
+const epochs = 4000;
 for (let epoch = 0; epoch < epochs; epoch++) {
   for (let data of trainingData) {
     train(data.inputs, data.outputs, learningRate);
