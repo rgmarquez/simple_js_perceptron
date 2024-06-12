@@ -32,6 +32,9 @@ function sigmoidDerivative(x) {
   return x * (1 - x);
 }
 
+// Global NN model
+let hiddenLayerInput = [];
+
 // Initialize weights and biases
 let weightsInputHidden = [
   [Math.random(), Math.random()], // Weights from input to hidden neuron 1
@@ -46,25 +49,7 @@ let biasesOutput = [Math.random(), Math.random()];
 
 function train(inputs, expectedOutputs, learningRate) {
   // Forward pass
-  let hiddenLayerInput = [];
-  for (let i = 0; i < 2; i++) {
-    hiddenLayerInput[i] = 0;
-    for (let j = 0; j < 2; j++) {
-      hiddenLayerInput[i] += inputs[j] * weightsInputHidden[j][i];
-    }
-    hiddenLayerInput[i] += biasesHidden[i];
-    hiddenLayerInput[i] = sigmoid(hiddenLayerInput[i]);
-  }
-
-  let outputLayerInput = [];
-  for (let i = 0; i < 2; i++) {
-    outputLayerInput[i] = 0;
-    for (let j = 0; j < 2; j++) {
-      outputLayerInput[i] += hiddenLayerInput[j] * weightsHiddenOutput[j][i];
-    }
-    outputLayerInput[i] += biasesOutput[i];
-    outputLayerInput[i] = sigmoid(outputLayerInput[i]);
-  }
+  let outputLayerInput = predict(inputs);
 
   // Backward pass (calculate errors and update weights)
   let outputErrors = [];
@@ -99,7 +84,6 @@ function train(inputs, expectedOutputs, learningRate) {
 }
 
 function predict(inputs) {
-  let hiddenLayerInput = [];
   for (let i = 0; i < 2; i++) {
     hiddenLayerInput[i] = 0;
     for (let j = 0; j < 2; j++) {
